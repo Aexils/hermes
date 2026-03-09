@@ -10,3 +10,5 @@ venv/
 *.log
 postgres_data/
 ollama_data/
+node_modules/
+dist/
