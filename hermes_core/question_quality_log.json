@@ -1,0 +1,9 @@
+[
+  {
+    "ts": "2026-03-08T20:20:09.240751+00:00",
+    "question": "What is the name of the house that has produced outstanding witches and wizards according to the text?",
+    "source_passage": "The four houses are called Gryffindor, Hufflepuff, Ravenclaw, and Slytherin. Each house has its own noble history and each has produced outstanding witches and wizards.",
+    "passed": false,
+    "reason": "[USER FLAG] Ambiguous: multiple valid answers reported by user"
+  }
+]
