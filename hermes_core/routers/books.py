@@ -196,8 +196,8 @@ async def start_transcription(book_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(404, "Book not found")
     if not book.audio_path:
         raise HTTPException(400, "Book has no audio file (sync from Audiobookshelf first)")
-    if book.transcription_status == "running":
-        return {"message": "Already running"}
+    if book.transcription_status in ("running", "pending"):
+        return {"message": f"Already {book.transcription_status}"}
 
     from celery import Celery
     book.transcription_status = "pending"

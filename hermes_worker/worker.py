@@ -10,6 +10,7 @@ app = Celery(
     backend=settings.redis_url,
     include=[
         "hermes_worker.tasks.generate_batch",
+        "hermes_worker.tasks.generate_nightly",
         "hermes_worker.tasks.sync_progress",
         "hermes_worker.tasks.transcribe_book",
     ],

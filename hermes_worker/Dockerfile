@@ -13,4 +13,4 @@ COPY hermes_core/ ./hermes_core/
 COPY hermes_llm/ ./hermes_llm/
 COPY hermes_worker/ ./hermes_worker/
 
-CMD ["celery", "-A", "hermes_worker.worker", "worker", "--loglevel=info", "--concurrency=2"]
+CMD ["celery", "-A", "hermes_worker.worker", "worker", "--loglevel=info", "--concurrency=1"]

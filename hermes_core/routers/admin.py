@@ -267,6 +267,8 @@ class BookPatch(BaseModel):
     parsed: Optional[bool] = None
     audio_item_id: Optional[str] = None
     audio_path: Optional[str] = None
+    transcription_status: Optional[str] = None
+    transcribed: Optional[bool] = None
 
 
 class ChapterRow(BaseModel):
