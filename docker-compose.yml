@@ -1,0 +1,111 @@
+version: "3.9"
+
+networks:
+  default: {}
+
+services:
+  hermes-core:
+    build:
+      context: .
+      dockerfile: hermes_core/Dockerfile
+    networks: [default]
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - OLLAMA_HOST=${OLLAMA_HOST}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - BOOKLORE_API=${BOOKLORE_API}
+      - BOOKLORE_REFRESH_TOKEN=${BOOKLORE_REFRESH_TOKEN}
+      - BOOKLORE_USERNAME=${BOOKLORE_USERNAME:-}
+      - BOOKLORE_PASSWORD=${BOOKLORE_PASSWORD:-}
+      - BOOKS_PATH=${BOOKS_PATH}
+      - AUDIOBOOKSHELF_API=${AUDIOBOOKSHELF_API:-http://host.docker.internal:13378}
+      - AUDIOBOOKSHELF_TOKEN=${AUDIOBOOKSHELF_TOKEN:-}
+      - AUDIOBOOKS_PATH=${AUDIOBOOKS_PATH:-/audiobooks}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+    volumes:
+      - C:\Users\alexi\Desktop\booklore\bookdrop:/books:ro
+      - ${AUDIOBOOKS_HOST_PATH:-C:\Users\alexi\Desktop\audiobooks}:/audiobooks:ro
+      # Monte le code source directement — les modifs host sont reflétées sans rebuild
+      - C:\Users\alexi\Desktop\hermes\hermes_core:/app/hermes_core
+      - C:\Users\alexi\Desktop\hermes\hermes_llm:/app/hermes_llm
+      - C:\Users\alexi\Desktop\hermes\scripts:/app/scripts
+      - whisper_cache:/root/.cache/huggingface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  hermes-worker:
+    build:
+      context: .
+      dockerfile: hermes_worker/Dockerfile
+    networks: [default]
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - OLLAMA_HOST=${OLLAMA_HOST}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - BOOKLORE_API=${BOOKLORE_API}
+      - BOOKLORE_REFRESH_TOKEN=${BOOKLORE_REFRESH_TOKEN}
+      - BOOKLORE_USERNAME=${BOOKLORE_USERNAME:-}
+      - BOOKLORE_PASSWORD=${BOOKLORE_PASSWORD:-}
+      - BOOKS_PATH=${BOOKS_PATH}
+      - AUDIOBOOKSHELF_API=${AUDIOBOOKSHELF_API:-http://host.docker.internal:13378}
+      - AUDIOBOOKSHELF_TOKEN=${AUDIOBOOKSHELF_TOKEN:-}
+      - AUDIOBOOKS_PATH=${AUDIOBOOKS_PATH:-/audiobooks}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+    volumes:
+      - C:\Users\alexi\Desktop\booklore\bookdrop:/books:ro
+      - ${AUDIOBOOKS_HOST_PATH:-C:\Users\alexi\Desktop\audiobooks}:/audiobooks:ro
+      - C:\Users\alexi\Desktop\hermes\hermes_core:/app/hermes_core
+      - C:\Users\alexi\Desktop\hermes\hermes_llm:/app/hermes_llm
+      - C:\Users\alexi\Desktop\hermes\hermes_worker:/app/hermes_worker
+      - whisper_cache:/root/.cache/huggingface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: hermes
+      POSTGRES_USER: hermes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  hermes-frontend:
+    build:
+      context: ./hermes_frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - hermes-core
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  whisper_cache:
